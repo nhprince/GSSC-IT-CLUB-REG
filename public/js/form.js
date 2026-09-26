@@ -40,6 +40,126 @@
   const permanentAddressField = $("field_permanent_address");
   const permanentAddressInput = $("permanent_address");
 
+  // Expose $ globally so inline onclick handlers in HTML can find inputs
+  window.$ = $;
+
+  // ---------- Modern Custom Select Component ----------
+
+  function initCustomSelect(selectEl) {
+    if (!selectEl || selectEl.dataset.customized === "true") return;
+    selectEl.dataset.customized = "true";
+
+    // Hide native select visually while keeping it active for form data and events
+    selectEl.style.position = "absolute";
+    selectEl.style.opacity = "0";
+    selectEl.style.pointerEvents = "none";
+    selectEl.style.width = "1px";
+    selectEl.style.height = "1px";
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "custom-select-wrapper";
+
+    const trigger = document.createElement("div");
+    trigger.className = "custom-select-trigger";
+    trigger.setAttribute("tabindex", "0");
+
+    const triggerText = document.createElement("span");
+    triggerText.className = "trigger-text";
+    triggerText.textContent = selectEl.options[selectEl.selectedIndex]?.text || "Select";
+
+    trigger.innerHTML = `
+      <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    `;
+    trigger.prepend(triggerText);
+
+    const menu = document.createElement("div");
+    menu.className = "custom-select-menu";
+
+    function buildOptions() {
+      menu.innerHTML = "";
+      const children = Array.from(selectEl.children);
+
+      children.forEach((child) => {
+        if (child.tagName === "OPTGROUP") {
+          const groupHeader = document.createElement("div");
+          groupHeader.className = "custom-select-group-header";
+          groupHeader.textContent = child.label;
+          menu.appendChild(groupHeader);
+
+          Array.from(child.children).forEach((opt) => createOption(opt));
+        } else if (child.tagName === "OPTION") {
+          createOption(child);
+        }
+      });
+    }
+
+    function createOption(opt) {
+      const optEl = document.createElement("div");
+      optEl.className = "custom-select-option" + (opt.value === selectEl.value ? " selected" : "");
+      optEl.textContent = opt.textContent;
+      optEl.dataset.value = opt.value;
+
+      optEl.addEventListener("click", (e) => {
+        e.stopPropagation();
+        selectEl.value = opt.value;
+        triggerText.textContent = opt.textContent;
+
+        menu.querySelectorAll(".custom-select-option").forEach((o) => o.classList.remove("selected"));
+        optEl.classList.add("selected");
+        wrapper.classList.remove("open");
+
+        // Dispatch change event to trigger listeners (like department other toggle)
+        selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+
+      menu.appendChild(optEl);
+    }
+
+    buildOptions();
+
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = wrapper.classList.contains("open");
+      document.querySelectorAll(".custom-select-wrapper.open").forEach((w) => w.classList.remove("open"));
+      if (!isOpen) wrapper.classList.add("open");
+    });
+
+    trigger.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        wrapper.classList.toggle("open");
+      } else if (e.key === "Escape") {
+        wrapper.classList.remove("open");
+      }
+    });
+
+    selectEl.parentNode.insertBefore(wrapper, selectEl);
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(menu);
+    wrapper.appendChild(selectEl);
+
+    // Keep trigger updated if select value changes programmatically
+    selectEl.addEventListener("change", () => {
+      const selected = selectEl.options[selectEl.selectedIndex];
+      if (selected) {
+        triggerText.textContent = selected.text;
+        menu.querySelectorAll(".custom-select-option").forEach((opt) => {
+          opt.classList.toggle("selected", opt.dataset.value === selectEl.value);
+        });
+      }
+    });
+  }
+
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".custom-select-wrapper.open").forEach((w) => w.classList.remove("open"));
+  });
+
+  function setupAllCustomSelects() {
+    document.querySelectorAll("select").forEach(initCustomSelect);
+  }
+
   // ---------- Progress bar ----------
 
   function buildProgressTrack() {
@@ -107,7 +227,7 @@
 
       const deptValue = departmentSelect.value;
       const deptValid = deptValue !== "" && (deptValue !== "__other__" || departmentOtherInput.value.trim() !== "");
-      valid = setError("field_department", deptValue !== "") && valid;
+      valid = setError("field_department", deptValid) && valid;
       if (deptValue === "__other__") {
         valid = setError("field_department_other", departmentOtherInput.value.trim() !== "") && valid;
       }
@@ -198,14 +318,14 @@
     });
   }
 
-  function wireUpload(inputId, previewId, labelId, stateKey, processingKey) {
-    const input = $(inputId);
+  function wireDualUpload(fileInputId, camInputId, previewId, labelId, stateKey, processingKey) {
+    const fileInput = $(fileInputId);
+    const camInput = $(camInputId);
     const preview = $(previewId);
     const label = $(labelId);
     const originalLabel = label.textContent;
 
-    input.addEventListener("change", async () => {
-      const file = input.files && input.files[0];
+    async function handleFile(file) {
       if (!file) return;
 
       state[processingKey] = true;
@@ -215,20 +335,33 @@
         const dataUrl = await compressImage(file);
         state[stateKey] = dataUrl;
         preview.innerHTML = `<img src="${dataUrl}" alt="" style="width:100%;height:100%;object-fit:cover;" />`;
-        label.textContent = "Photo selected — tap to change";
-        if (inputId === "id_document_photo") setError("field_id_document_photo", true);
+        label.textContent = "Photo ready ✓";
+        if (stateKey === "id_document_photo") setError("field_id_document_photo", true);
       } catch (err) {
         state[stateKey] = null;
         label.textContent = originalLabel;
-        input.value = "";
+        fileInput.value = "";
+        if (camInput) camInput.value = "";
       } finally {
         state[processingKey] = false;
       }
-    });
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+      });
+    }
+
+    if (camInput) {
+      camInput.addEventListener("change", () => {
+        if (camInput.files && camInput.files[0]) handleFile(camInput.files[0]);
+      });
+    }
   }
 
-  wireUpload("profile_photo", "profilePreview", "profileUploadLabel", "profile_photo", "processingProfile");
-  wireUpload("id_document_photo", "idDocPreview", "idDocUploadLabel", "id_document_photo", "processingId");
+  wireDualUpload("profile_photo", "profile_photo_cam", "profilePreview", "profileUploadLabel", "profile_photo", "processingProfile");
+  wireDualUpload("id_document_photo", "id_document_photo_cam", "idDocPreview", "idDocUploadLabel", "id_document_photo", "processingId");
 
   // ---------- Review ----------
 
@@ -300,8 +433,8 @@
     ]);
 
     html += section("Academic", [
-      ["Student ID", fieldLabel(d.student_id)],
-      ["Department", fieldLabel(d.department)],
+      ["Student ID / Roll", fieldLabel(d.student_id)],
+      ["Department / Group", fieldLabel(d.department)],
       ["Year", fieldLabel(d.year)],
       ["Session", fieldLabel(d.session)],
     ]);
@@ -361,11 +494,11 @@
   }
 
   $("submitAnotherBtn").addEventListener("click", () => window.location.reload());
-
   form.addEventListener("submit", (e) => e.preventDefault());
 
   // ---------- Init ----------
 
   buildProgressTrack();
+  setupAllCustomSelects();
   showStep(1);
 })();

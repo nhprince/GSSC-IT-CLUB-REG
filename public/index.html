@@ -34,7 +34,7 @@
           <div class="track" id="progressTrack"></div>
           <div class="label-row">
             <span class="step-title" id="stepTitle">Personal Information</span>
-            <span class="step-count" id="stepCount">Step 1 of 5</span>
+            <span class="step-count" id="stepCount">Step 1 of 6</span>
           </div>
         </div>
 
@@ -64,7 +64,7 @@
               <div class="field" id="field_blood_group">
                 <label for="blood_group">Blood group</label>
                 <select id="blood_group" name="blood_group">
-                  <option value="">Select</option>
+                  <option value="">Select blood group</option>
                   <option>A+</option><option>A-</option>
                   <option>B+</option><option>B-</option>
                   <option>AB+</option><option>AB-</option>
@@ -74,18 +74,30 @@
               </div>
             </div>
 
+            <!-- Profile Photo with Camera + Browse buttons -->
             <div class="field" id="field_profile_photo">
               <label>Profile photo</label>
-              <label class="upload-box" for="profile_photo">
-                <span class="upload-preview" id="profilePreview">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"></path></svg>
-                </span>
-                <span class="upload-text">
-                  <strong id="profileUploadLabel">Upload a clear photo of yourself</strong>
-                  <span>JPG or PNG, resized automatically</span>
-                </span>
-                <input type="file" id="profile_photo" accept="image/*" />
-              </label>
+              <div class="upload-card">
+                <div class="upload-preview" id="profilePreview">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"></path></svg>
+                </div>
+                <div class="upload-content">
+                  <strong id="profileUploadLabel">Upload or take a clear photo</strong>
+                  <span class="upload-subtext">JPG or PNG, resized automatically</span>
+                  <div class="upload-btn-group">
+                    <button type="button" class="btn-action btn-camera" onclick="$('profile_photo_cam').click()">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                      Take Photo
+                    </button>
+                    <button type="button" class="btn-action btn-browse" onclick="$('profile_photo').click()">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                      Upload File
+                    </button>
+                  </div>
+                </div>
+                <input type="file" id="profile_photo" accept="image/*" class="visually-hidden" />
+                <input type="file" id="profile_photo_cam" accept="image/*" capture="user" class="visually-hidden" />
+              </div>
               <span class="hint">Used for your member ID card and the club directory.</span>
             </div>
           </section>
@@ -93,60 +105,78 @@
           <!-- Step 2: Academic -->
           <section class="step" data-step="2">
             <div class="field" id="field_student_id">
-              <label for="student_id">Student ID / roll number <span class="required">*</span></label>
-              <input type="text" id="student_id" name="student_id" placeholder="e.g. 21-CSE-045" required />
-              <span class="error-text">Please enter your student ID.</span>
+              <label for="student_id">Student ID / Roll number <span class="required">*</span></label>
+              <input type="text" id="student_id" name="student_id" placeholder="e.g. 21-CSE-045 or Class Roll" required />
+              <span class="error-text">Please enter your student ID / roll number.</span>
             </div>
 
             <div class="field" id="field_department">
-              <label for="department">Department <span class="required">*</span></label>
+              <label for="department">Department / Group <span class="required">*</span></label>
               <select id="department" name="department" required>
-                <option value="">Select your department</option>
-                <option>Computer Science</option>
-                <option>Physics</option>
-                <option>Chemistry</option>
-                <option>Mathematics</option>
-                <option>Statistics</option>
-                <option>Botany</option>
-                <option>Zoology</option>
-                <option>Economics</option>
-                <option>Political Science</option>
-                <option>Sociology</option>
-                <option>Social Work</option>
-                <option>History</option>
-                <option>Islamic History & Culture</option>
-                <option>Philosophy</option>
-                <option>Bangla</option>
-                <option>English</option>
-                <option>Accounting</option>
-                <option>Management</option>
-                <option>Finance & Banking</option>
-                <option value="__other__">Other (please specify)</option>
+                <option value="">Select your department or group</option>
+                <optgroup label="Higher Secondary (HSC)">
+                  <option value="HSC - Science">Science</option>
+                  <option value="HSC - Business Studies">Business Studies</option>
+                  <option value="HSC - Humanities">Humanities</option>
+                </optgroup>
+                <optgroup label="Honours / Degree / Masters">
+                  <option>Computer Science</option>
+                  <option>Physics</option>
+                  <option>Chemistry</option>
+                  <option>Mathematics</option>
+                  <option>Statistics</option>
+                  <option>Botany</option>
+                  <option>Zoology</option>
+                  <option>Economics</option>
+                  <option>Political Science</option>
+                  <option>Sociology</option>
+                  <option>Social Work</option>
+                  <option>History</option>
+                  <option>Islamic History & Culture</option>
+                  <option>Philosophy</option>
+                  <option>Bangla</option>
+                  <option>English</option>
+                  <option>Accounting</option>
+                  <option>Management</option>
+                  <option>Finance & Banking</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="__other__">Other (please specify)</option>
+                </optgroup>
               </select>
-              <span class="error-text">Please select your department.</span>
+              <span class="error-text">Please select your department or group.</span>
             </div>
 
             <div class="field" id="field_department_other" style="display:none;">
-              <label for="department_other">Please specify your department <span class="required">*</span></label>
-              <input type="text" id="department_other" name="department_other" placeholder="Your department" />
+              <label for="department_other">Please specify your department / program <span class="required">*</span></label>
+              <input type="text" id="department_other" name="department_other" placeholder="Your department or program" />
             </div>
 
             <div class="field-row">
               <div class="field" id="field_year">
                 <label for="year">Academic year <span class="required">*</span></label>
                 <select id="year" name="year" required>
-                  <option value="">Select</option>
-                  <option>1st Year</option>
-                  <option>2nd Year</option>
-                  <option>3rd Year</option>
-                  <option>4th Year</option>
-                  <option>Honours Completed / Masters</option>
+                  <option value="">Select year</option>
+                  <optgroup label="Higher Secondary (HSC)">
+                    <option value="HSC 1st Year">HSC 1st Year</option>
+                    <option value="HSC 2nd Year">HSC 2nd Year</option>
+                  </optgroup>
+                  <optgroup label="Honours / Degree">
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                  </optgroup>
+                  <optgroup label="Masters / Other">
+                    <option value="Masters">Masters</option>
+                    <option value="Honours Completed / Masters">Honours Completed / Masters</option>
+                  </optgroup>
                 </select>
                 <span class="error-text">Please select your year.</span>
               </div>
               <div class="field" id="field_session">
                 <label for="session">Session <span class="required">*</span></label>
-                <input type="text" id="session" name="session" placeholder="e.g. 2022-2023" required />
+                <input type="text" id="session" name="session" placeholder="e.g. 2024-2025" required />
                 <span class="error-text">Please enter your session.</span>
               </div>
             </div>
@@ -226,21 +256,32 @@
             </div>
           </section>
 
-          <!-- Step 5: Documents -->
+          <!-- Step 5: Documents with Camera + Browse buttons -->
           <section class="step" data-step="5">
             <div class="field" id="field_id_document_photo">
               <label>College ID card or birth certificate <span class="required">*</span></label>
-              <label class="upload-box" for="id_document_photo">
-                <span class="upload-preview" id="idDocPreview">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M7 10h4M7 14h7"></path></svg>
-                </span>
-                <span class="upload-text">
-                  <strong id="idDocUploadLabel">Upload a clear photo</strong>
-                  <span>College ID card, or birth certificate if you don't have one yet</span>
-                </span>
-                <input type="file" id="id_document_photo" accept="image/*" required />
-              </label>
-              <span class="error-text">Please upload your ID card or birth certificate photo.</span>
+              <div class="upload-card">
+                <div class="upload-preview" id="idDocPreview">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M7 10h4M7 14h7"></path></svg>
+                </div>
+                <div class="upload-content">
+                  <strong id="idDocUploadLabel">Upload or capture your document</strong>
+                  <span class="upload-subtext">College ID card, or birth certificate if you don't have one yet</span>
+                  <div class="upload-btn-group">
+                    <button type="button" class="btn-action btn-camera" onclick="$('id_document_photo_cam').click()">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                      Take Photo
+                    </button>
+                    <button type="button" class="btn-action btn-browse" onclick="$('id_document_photo').click()">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                      Upload File
+                    </button>
+                  </div>
+                </div>
+                <input type="file" id="id_document_photo" accept="image/*" class="visually-hidden" />
+                <input type="file" id="id_document_photo_cam" accept="image/*" capture="environment" class="visually-hidden" />
+              </div>
+              <span class="error-text">Please upload or capture your ID card or birth certificate photo.</span>
               <span class="hint">Used only to verify your identity as a student of this college. Kept confidential.</span>
             </div>
           </section>

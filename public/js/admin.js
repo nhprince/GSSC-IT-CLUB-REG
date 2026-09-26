@@ -189,39 +189,118 @@
     if (departments.includes(current)) departmentFilter.value = current;
   }
 
+  // Robust Bar Chart Renderer with Brave Shields/Adblock Fallback
   function renderChart(departments) {
-    const ctx = $("deptChart").getContext("2d");
+    const canvas = $("deptChart");
+    if (!canvas) return;
+
     const labels = departments.map((d) => d.department);
     const counts = departments.map((d) => d.count);
 
-    if (deptChart) {
-      deptChart.data.labels = labels;
-      deptChart.data.datasets[0].data = counts;
-      deptChart.update();
+    // Option A: If Chart.js loaded successfully from CDN, use it
+    if (typeof Chart !== "undefined") {
+      const ctx = canvas.getContext("2d");
+      if (deptChart) {
+        deptChart.data.labels = labels;
+        deptChart.data.datasets[0].data = counts;
+        deptChart.update();
+        return;
+      }
+
+      deptChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Members",
+            data: counts,
+            backgroundColor: "#7f0206",
+            borderRadius: 6,
+            maxBarThickness: 40,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "#e1e6db" } },
+            x: { grid: { display: false } },
+          },
+        },
+      });
       return;
     }
 
-    deptChart = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [{
-          label: "Members",
-          data: counts,
-          backgroundColor: "#7f0206",
-          borderRadius: 6,
-          maxBarThickness: 40,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "#e1e6db" } },
-          x: { grid: { display: false } },
-        },
-      },
+    // Option B: High-DPI Native Canvas Fallback (immune to Brave Shields & adblockers)
+    renderNativeCanvasChart(canvas, labels, counts);
+  }
+
+  function renderNativeCanvasChart(canvas, labels, counts) {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const width = rect.width || 600;
+    const height = rect.height || 230;
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, width, height);
+
+    if (labels.length === 0) {
+      ctx.fillStyle = "#6c5b5a";
+      ctx.font = "14px Work Sans, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("No department data available yet", width / 2, height / 2);
+      return;
+    }
+
+    const maxCount = Math.max(...counts, 1);
+    const paddingBottom = 40;
+    const paddingTop = 25;
+    const paddingLeft = 30;
+    const paddingRight = 20;
+
+    const chartW = width - paddingLeft - paddingRight;
+    const chartH = height - paddingTop - paddingBottom;
+
+    // Draw baseline
+    ctx.strokeStyle = "#e1e6db";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, height - paddingBottom);
+    ctx.lineTo(width - paddingRight, height - paddingBottom);
+    ctx.stroke();
+
+    const barWidth = Math.min(38, Math.max(16, (chartW / labels.length) * 0.6));
+    const step = chartW / labels.length;
+
+    labels.forEach((label, i) => {
+      const val = counts[i];
+      const barH = (val / maxCount) * chartH;
+      const x = paddingLeft + i * step + (step - barWidth) / 2;
+      const y = height - paddingBottom - barH;
+
+      // Draw rounded bar
+      ctx.fillStyle = "#7f0206";
+      ctx.beginPath();
+      const r = Math.min(6, barH);
+      ctx.roundRect ? ctx.roundRect(x, y, barWidth, barH, [r, r, 0, 0]) : ctx.rect(x, y, barWidth, barH);
+      ctx.fill();
+
+      // Value label on top
+      ctx.fillStyle = "#560103";
+      ctx.font = "bold 12px Work Sans, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(String(val), x + barWidth / 2, y - 6);
+
+      // Department text underneath
+      ctx.fillStyle = "#6c5b5a";
+      ctx.font = "11px Work Sans, sans-serif";
+      const shortLabel = label.length > 11 ? label.slice(0, 10) + "…" : label;
+      ctx.fillText(shortLabel, x + barWidth / 2, height - paddingBottom + 18);
     });
   }
 
@@ -295,10 +374,6 @@
 
   // ---------- View modal ----------
 
-  function detailRow(label, value, full = false) {
-    return `<div class="v-item${full ? " detail-full" : ""}"><div class="k">${escapeHtml(label)}</div><div class="v">${value}</div></div>`;
-  }
-
   async function viewMember(id) {
     openModal("viewModal");
     $("viewModalBody").innerHTML = '<p class="text-muted">Loading…</p>';
@@ -321,7 +396,7 @@
 
       html += `<div class="modal-section-title">Academic</div><div class="detail-grid">`;
       html += `<div><div class="k">Student ID</div><div class="v">${escapeHtml(m.student_id)}</div></div>`;
-      html += `<div><div class="k">Department</div><div class="v">${escapeHtml(m.department)}</div></div>`;
+      html += `<div><div class="k">Department / Group</div><div class="v">${escapeHtml(m.department)}</div></div>`;
       html += `<div><div class="k">Year</div><div class="v">${escapeHtml(m.year)}</div></div>`;
       html += `<div><div class="k">Session</div><div class="v">${escapeHtml(m.session)}</div></div>`;
       html += `</div>`;
@@ -368,7 +443,7 @@
 
       let html = "";
       html += `<div class="field-row">${editField("edit_full_name", "Full name", m.full_name)}${editField("edit_student_id", "Student ID", m.student_id)}</div>`;
-      html += `<div class="field-row">${editField("edit_department", "Department", m.department)}${editField("edit_year", "Year", m.year)}</div>`;
+      html += `<div class="field-row">${editField("edit_department", "Department / Group", m.department)}${editField("edit_year", "Year", m.year)}</div>`;
       html += `<div class="field-row">${editField("edit_session", "Session", m.session)}${editField("edit_blood_group", "Blood group", m.blood_group)}</div>`;
       html += `<div class="field-row">${editField("edit_email", "Email", m.email, "email")}${editField("edit_phone", "Phone", m.phone, "tel")}</div>`;
       html += editField("edit_present_address", "Present address", m.present_address, "textarea");
@@ -451,7 +526,6 @@
     }
   });
 
-  // Expose handlers used by inline onclick attributes in table rows.
   window.AdminPanel = { viewMember, editMember, deleteMember };
 
   checkAuth();
