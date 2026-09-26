@@ -1,0 +1,13 @@
+{
+  "name": "GSSC IT Club Registration",
+  "short_name": "GSSC IT Club",
+  "description": "Member registration for the Govt. Shaheed Suhrawardy College IT Club",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf7f6",
+  "theme_color": "#7f0206",
+  "icons": [
+    { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

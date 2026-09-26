@@ -22,16 +22,11 @@ body.admin-body {
   text-align: center;
 }
 
-.login-card .crest {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.1rem;
+.login-card .crest-logo {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 1rem;
+  display: block;
 }
 
 .login-card h1 {
@@ -98,12 +93,8 @@ body.admin-body {
 .topbar .brand-icon {
   width: 34px;
   height: 34px;
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
+  display: block;
 }
 
 .topbar .brand-text {

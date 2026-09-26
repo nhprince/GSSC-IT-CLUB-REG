@@ -208,7 +208,7 @@
         datasets: [{
           label: "Members",
           data: counts,
-          backgroundColor: "#14532d",
+          backgroundColor: "#7f0206",
           borderRadius: 6,
           maxBarThickness: 40,
         }],
