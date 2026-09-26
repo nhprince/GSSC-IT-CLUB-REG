@@ -1,0 +1,18 @@
+{
+  "name": "gssc-it-club",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Member registration & admin panel for Govt. Shaheed Suhrawardy College IT Club — Cloudflare Pages + Functions + D1",
+  "scripts": {
+    "dev": "wrangler pages dev public --d1=DB",
+    "deploy": "wrangler pages deploy public",
+    "db:create": "wrangler d1 create gssc_it_club_db",
+    "db:init:remote": "wrangler d1 execute gssc_it_club_db --remote --file=./schema.sql",
+    "db:init:local": "wrangler d1 execute gssc_it_club_db --local --file=./schema.sql",
+    "secret:admin-password": "wrangler pages secret put ADMIN_PASSWORD",
+    "secret:session-secret": "wrangler pages secret put SESSION_SECRET"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}
