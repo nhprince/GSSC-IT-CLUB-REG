@@ -102,54 +102,29 @@
             </div>
           </section>
 
-          <!-- Step 2: Academic -->
+          <!-- Step 2: Academic (HSC Specific) -->
           <section class="step" data-step="2">
             <div class="field" id="field_student_id">
-              <label for="student_id">Student ID / Roll number <span class="required">*</span></label>
-              <input type="text" id="student_id" name="student_id" placeholder="e.g. 21-CSE-045 or Class Roll" required />
-              <span class="error-text">Please enter your student ID / roll number.</span>
+              <label for="student_id">Class Roll / Student ID <span class="required">*</span></label>
+              <input type="text" id="student_id" name="student_id" placeholder="e.g. 1204 or College Roll" required />
+              <span class="error-text">Please enter your class roll / student ID.</span>
             </div>
 
             <div class="field" id="field_department">
-              <label for="department">Department / Group <span class="required">*</span></label>
+              <label for="department">Group <span class="required">*</span></label>
               <select id="department" name="department" required>
-                <option value="">Select your department or group</option>
-                <optgroup label="Higher Secondary (HSC)">
-                  <option value="HSC - Science">Science</option>
-                  <option value="HSC - Business Studies">Business Studies</option>
-                  <option value="HSC - Humanities">Humanities</option>
-                </optgroup>
-                <optgroup label="Honours / Degree / Masters">
-                  <option>Computer Science</option>
-                  <option>Physics</option>
-                  <option>Chemistry</option>
-                  <option>Mathematics</option>
-                  <option>Statistics</option>
-                  <option>Botany</option>
-                  <option>Zoology</option>
-                  <option>Economics</option>
-                  <option>Political Science</option>
-                  <option>Sociology</option>
-                  <option>Social Work</option>
-                  <option>History</option>
-                  <option>Islamic History & Culture</option>
-                  <option>Philosophy</option>
-                  <option>Bangla</option>
-                  <option>English</option>
-                  <option>Accounting</option>
-                  <option>Management</option>
-                  <option>Finance & Banking</option>
-                </optgroup>
-                <optgroup label="Other">
-                  <option value="__other__">Other (please specify)</option>
-                </optgroup>
+                <option value="">Select your group</option>
+                <option value="Science">Science</option>
+                <option value="Business Studies">Business Studies</option>
+                <option value="Humanities">Humanities</option>
+                <option value="__other__">Other (please specify)</option>
               </select>
-              <span class="error-text">Please select your department or group.</span>
+              <span class="error-text">Please select your group.</span>
             </div>
 
             <div class="field" id="field_department_other" style="display:none;">
-              <label for="department_other">Please specify your department / program <span class="required">*</span></label>
-              <input type="text" id="department_other" name="department_other" placeholder="Your department or program" />
+              <label for="department_other">Please specify your group <span class="required">*</span></label>
+              <input type="text" id="department_other" name="department_other" placeholder="Your group or track" />
             </div>
 
             <div class="field-row">
@@ -157,20 +132,9 @@
                 <label for="year">Academic year <span class="required">*</span></label>
                 <select id="year" name="year" required>
                   <option value="">Select year</option>
-                  <optgroup label="Higher Secondary (HSC)">
-                    <option value="HSC 1st Year">HSC 1st Year</option>
-                    <option value="HSC 2nd Year">HSC 2nd Year</option>
-                  </optgroup>
-                  <optgroup label="Honours / Degree">
-                    <option value="1st Year">1st Year</option>
-                    <option value="2nd Year">2nd Year</option>
-                    <option value="3rd Year">3rd Year</option>
-                    <option value="4th Year">4th Year</option>
-                  </optgroup>
-                  <optgroup label="Masters / Other">
-                    <option value="Masters">Masters</option>
-                    <option value="Honours Completed / Masters">Honours Completed / Masters</option>
-                  </optgroup>
+                  <option value="HSC 1st Year">HSC 1st Year (XI)</option>
+                  <option value="HSC 2nd Year">HSC 2nd Year (XII)</option>
+                  <option value="HSC Examinee">HSC Examinee</option>
                 </select>
                 <span class="error-text">Please select your year.</span>
               </div>
@@ -266,7 +230,7 @@
                 </div>
                 <div class="upload-content">
                   <strong id="idDocUploadLabel">Upload or capture your document</strong>
-                  <span class="upload-subtext">College ID card, or birth certificate if you don't have one yet</span>
+                  <span class="upload-subtext">College ID card, or birth certificate</span>
                   <div class="upload-btn-group">
                     <button type="button" class="btn-action btn-camera" onclick="$('id_document_photo_cam').click()">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
@@ -282,7 +246,7 @@
                 <input type="file" id="id_document_photo_cam" accept="image/*" capture="environment" class="visually-hidden" />
               </div>
               <span class="error-text">Please upload or capture your ID card or birth certificate photo.</span>
-              <span class="hint">Used only to verify your identity as a student of this college. Kept confidential.</span>
+              <span class="hint">Used only to verify your identity as an HSC student of this college. Kept confidential.</span>
             </div>
           </section>
 
