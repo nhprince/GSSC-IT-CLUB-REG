@@ -74,7 +74,7 @@
               </div>
             </div>
 
-            <!-- Profile Photo with Camera + Browse buttons -->
+            <!-- Profile Photo with Direct Camera + Browse -->
             <div class="field" id="field_profile_photo">
               <label>Profile photo</label>
               <div class="upload-card">
@@ -85,7 +85,7 @@
                   <strong id="profileUploadLabel">Upload or take a clear photo</strong>
                   <span class="upload-subtext">JPG or PNG, resized automatically</span>
                   <div class="upload-btn-group">
-                    <button type="button" class="btn-action btn-camera" onclick="$('profile_photo_cam').click()">
+                    <button type="button" class="btn-action btn-camera" onclick="openCamera('profile_photo')">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                       Take Photo
                     </button>
@@ -96,7 +96,6 @@
                   </div>
                 </div>
                 <input type="file" id="profile_photo" accept="image/*" class="visually-hidden" />
-                <input type="file" id="profile_photo_cam" accept="image/*" capture="user" class="visually-hidden" />
               </div>
               <span class="hint">Used for your member ID card and the club directory.</span>
             </div>
@@ -220,7 +219,7 @@
             </div>
           </section>
 
-          <!-- Step 5: Documents with Camera + Browse buttons -->
+          <!-- Step 5: Documents with Direct Camera + Browse -->
           <section class="step" data-step="5">
             <div class="field" id="field_id_document_photo">
               <label>College ID card or birth certificate <span class="required">*</span></label>
@@ -232,7 +231,7 @@
                   <strong id="idDocUploadLabel">Upload or capture your document</strong>
                   <span class="upload-subtext">College ID card, or birth certificate</span>
                   <div class="upload-btn-group">
-                    <button type="button" class="btn-action btn-camera" onclick="$('id_document_photo_cam').click()">
+                    <button type="button" class="btn-action btn-camera" onclick="openCamera('id_document_photo')">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                       Take Photo
                     </button>
@@ -243,7 +242,6 @@
                   </div>
                 </div>
                 <input type="file" id="id_document_photo" accept="image/*" class="visually-hidden" />
-                <input type="file" id="id_document_photo_cam" accept="image/*" capture="environment" class="visually-hidden" />
               </div>
               <span class="error-text">Please upload or capture your ID card or birth certificate photo.</span>
               <span class="hint">Used only to verify your identity as an HSC student of this college. Kept confidential.</span>
@@ -281,6 +279,32 @@
     </footer>
   </div>
 
+</div>
+
+<!-- In-Page Live Camera Viewfinder Modal -->
+<div class="camera-modal-overlay" id="cameraModal">
+  <div class="camera-modal">
+    <div class="camera-header">
+      <h3 id="cameraModalTitle">Take Photo</h3>
+      <button type="button" class="camera-close-btn" id="cameraCloseBtn" aria-label="Close camera">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
+    <div class="camera-viewfinder-wrap">
+      <video id="cameraVideo" autoplay playsinline muted></video>
+      <div class="camera-guide" id="cameraGuide"></div>
+      <canvas id="cameraCanvas" style="display:none;"></canvas>
+    </div>
+    <div class="camera-controls">
+      <button type="button" class="btn-camera-ctrl btn-camera-switch" id="cameraSwitchBtn" title="Switch front/back camera">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8c0 1.954.702 3.743 1.87 5.13L4 17h6v-6L8.13 12.87A5.98 5.98 0 0 1 6 10c0-3.314 2.686-6 6-6s6 2.686 6 6c0 1.456-.519 2.791-1.385 3.834L18.06 15.28A7.963 7.963 0 0 0 20 10zM14 17l1.87-1.87A5.98 5.98 0 0 1 18 10h2c0 4.418-3.582-8-8 8s-8-3.582-8-8h2c0 3.314 2.686 6 6 6c1.456 0 2.791-.519 3.834-1.385L16 19v-6h6l-2 2z"/></svg>
+      </button>
+      <button type="button" class="btn-camera-shutter" id="cameraCaptureBtn" aria-label="Capture photo">
+        <span class="shutter-inner"></span>
+      </button>
+      <div style="width:40px;"></div>
+    </div>
+  </div>
 </div>
 
 <script src="/js/form.js"></script>

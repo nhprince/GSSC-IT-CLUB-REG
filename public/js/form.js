@@ -40,8 +40,121 @@
   const permanentAddressField = $("field_permanent_address");
   const permanentAddressInput = $("permanent_address");
 
-  // Expose $ globally so inline onclick handlers in HTML can find inputs
   window.$ = $;
+
+  // ---------- Live Camera Viewfinder Engine (WebRTC) ----------
+
+  let activeCameraStream = null;
+  let currentTargetPhotoKey = null;
+  let currentFacingMode = "user"; // "user" (front) or "environment" (rear)
+
+  const cameraModal = $("cameraModal");
+  const cameraVideo = $("cameraVideo");
+  const cameraGuide = $("cameraGuide");
+  const cameraModalTitle = $("cameraModalTitle");
+  const cameraSwitchBtn = $("cameraSwitchBtn");
+  const cameraCloseBtn = $("cameraCloseBtn");
+  const cameraCaptureBtn = $("cameraCaptureBtn");
+
+  async function startCameraStream() {
+    if (activeCameraStream) {
+      activeCameraStream.getTracks().forEach((track) => track.stop());
+    }
+
+    try {
+      const constraints = {
+        video: {
+          facingMode: currentFacingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 960 },
+        },
+        audio: false,
+      };
+
+      activeCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+      cameraVideo.srcObject = activeCameraStream;
+
+      // Mirror preview if using front selfie camera
+      cameraVideo.classList.toggle("mirror", currentFacingMode === "user");
+    } catch (err) {
+      alert("Unable to access camera. Please allow camera permissions in your browser or use the 'Upload File' button.");
+      closeCameraModal();
+    }
+  }
+
+  function openCamera(targetKey) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert("Direct camera access is not supported by your browser. Please use 'Upload File'.");
+      $(targetKey).click();
+      return;
+    }
+
+    currentTargetPhotoKey = targetKey;
+    if (targetKey === "profile_photo") {
+      cameraModalTitle.textContent = "Take Profile Photo";
+      currentFacingMode = "user"; // front camera
+      cameraGuide.className = "camera-guide guide-profile";
+    } else {
+      cameraModalTitle.textContent = "Capture ID / Document";
+      currentFacingMode = "environment"; // rear camera on mobile
+      cameraGuide.className = "camera-guide guide-document";
+    }
+
+    cameraModal.classList.add("active");
+    startCameraStream();
+  }
+
+  function closeCameraModal() {
+    if (activeCameraStream) {
+      activeCameraStream.getTracks().forEach((track) => track.stop());
+      activeCameraStream = null;
+    }
+    cameraVideo.srcObject = null;
+    cameraModal.classList.remove("active");
+    currentTargetPhotoKey = null;
+  }
+
+  cameraCloseBtn.addEventListener("click", closeCameraModal);
+  cameraModal.addEventListener("click", (e) => {
+    if (e.target === cameraModal) closeCameraModal();
+  });
+
+  cameraSwitchBtn.addEventListener("click", () => {
+    currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
+    startCameraStream();
+  });
+
+  cameraCaptureBtn.addEventListener("click", async () => {
+    if (!activeCameraStream) return;
+
+    const canvas = $("cameraCanvas");
+    canvas.width = cameraVideo.videoWidth || 1280;
+    canvas.height = cameraVideo.videoHeight || 960;
+    const ctx = canvas.getContext("2d");
+
+    // Mirror image on canvas if front camera was used
+    if (currentFacingMode === "user") {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+
+    ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+    const rawDataUrl = canvas.toDataURL("image/jpeg", 0.88);
+
+    const isProfile = currentTargetPhotoKey === "profile_photo";
+    const previewEl = $(isProfile ? "profilePreview" : "idDocPreview");
+    const labelEl = $(isProfile ? "profileUploadLabel" : "idDocUploadLabel");
+
+    state[currentTargetPhotoKey] = rawDataUrl;
+    previewEl.innerHTML = `<img src="${rawDataUrl}" alt="" style="width:100%;height:100%;object-fit:cover;" />`;
+    labelEl.textContent = "Photo captured ✓";
+
+    if (!isProfile) setError("field_id_document_photo", true);
+
+    closeCameraModal();
+  });
+
+  window.openCamera = openCamera;
 
   // ---------- Modern Custom Select Component ----------
 
@@ -49,7 +162,6 @@
     if (!selectEl || selectEl.dataset.customized === "true") return;
     selectEl.dataset.customized = "true";
 
-    // Hide native select visually while keeping it active for form data and events
     selectEl.style.position = "absolute";
     selectEl.style.opacity = "0";
     selectEl.style.pointerEvents = "none";
@@ -110,7 +222,6 @@
         optEl.classList.add("selected");
         wrapper.classList.remove("open");
 
-        // Dispatch change event to trigger listeners (like department other toggle)
         selectEl.dispatchEvent(new Event("change", { bubbles: true }));
       });
 
@@ -140,7 +251,6 @@
     wrapper.appendChild(menu);
     wrapper.appendChild(selectEl);
 
-    // Keep trigger updated if select value changes programmatically
     selectEl.addEventListener("change", () => {
       const selected = selectEl.options[selectEl.selectedIndex];
       if (selected) {
@@ -266,13 +376,9 @@
     showStep(next);
   });
 
-  // ---------- Department "Other" toggle ----------
-
   departmentSelect.addEventListener("change", () => {
     departmentOtherField.style.display = departmentSelect.value === "__other__" ? "block" : "none";
   });
-
-  // ---------- Same-as-present address ----------
 
   function syncAddress() {
     if (sameAddressCheckbox.checked) {
@@ -287,7 +393,7 @@
 
   presentAddressInput.addEventListener("input", syncAddress);
 
-  // ---------- Image compression ----------
+  // ---------- Image Compression ----------
 
   function compressImage(file, maxDim = 900, quality = 0.72) {
     return new Promise((resolve, reject) => {
@@ -318,14 +424,14 @@
     });
   }
 
-  function wireDualUpload(fileInputId, camInputId, previewId, labelId, stateKey, processingKey) {
-    const fileInput = $(fileInputId);
-    const camInput = $(camInputId);
+  function wireUploadInput(inputId, previewId, labelId, stateKey, processingKey) {
+    const input = $(inputId);
     const preview = $(previewId);
     const label = $(labelId);
     const originalLabel = label.textContent;
 
-    async function handleFile(file) {
+    input.addEventListener("change", async () => {
+      const file = input.files && input.files[0];
       if (!file) return;
 
       state[processingKey] = true;
@@ -340,30 +446,17 @@
       } catch (err) {
         state[stateKey] = null;
         label.textContent = originalLabel;
-        fileInput.value = "";
-        if (camInput) camInput.value = "";
+        input.value = "";
       } finally {
         state[processingKey] = false;
       }
-    }
-
-    if (fileInput) {
-      fileInput.addEventListener("change", () => {
-        if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
-      });
-    }
-
-    if (camInput) {
-      camInput.addEventListener("change", () => {
-        if (camInput.files && camInput.files[0]) handleFile(camInput.files[0]);
-      });
-    }
+    });
   }
 
-  wireDualUpload("profile_photo", "profile_photo_cam", "profilePreview", "profileUploadLabel", "profile_photo", "processingProfile");
-  wireDualUpload("id_document_photo", "id_document_photo_cam", "idDocPreview", "idDocUploadLabel", "id_document_photo", "processingId");
+  wireUploadInput("profile_photo", "profilePreview", "profileUploadLabel", "profile_photo", "processingProfile");
+  wireUploadInput("id_document_photo", "idDocPreview", "idDocUploadLabel", "id_document_photo", "processingId");
 
-  // ---------- Review ----------
+  // ---------- Review & Submit ----------
 
   function fieldLabel(value, fallback = "—") {
     const v = (value || "").toString().trim();
@@ -433,8 +526,8 @@
     ]);
 
     html += section("Academic", [
-      ["Student ID / Roll", fieldLabel(d.student_id)],
-      ["Department / Group", fieldLabel(d.department)],
+      ["Class Roll / Student ID", fieldLabel(d.student_id)],
+      ["Group", fieldLabel(d.department)],
       ["Year", fieldLabel(d.year)],
       ["Session", fieldLabel(d.session)],
     ]);
@@ -457,8 +550,6 @@
 
     $("reviewContent").innerHTML = html;
   }
-
-  // ---------- Submit ----------
 
   async function submitForm() {
     submitError.classList.remove("active");
@@ -495,8 +586,6 @@
 
   $("submitAnotherBtn").addEventListener("click", () => window.location.reload());
   form.addEventListener("submit", (e) => e.preventDefault());
-
-  // ---------- Init ----------
 
   buildProgressTrack();
   setupAllCustomSelects();

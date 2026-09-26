@@ -506,92 +506,162 @@ select {
 }
 
 /* ========================================================
-   Enhanced Upload Cards with Direct Camera + Browse Actions
+   In-App Camera Viewfinder Modal
    ======================================================== */
 
-.upload-card {
-  border: 1.5px dashed var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 1.1rem;
+.camera-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 12, 12, 0.85);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.camera-modal-overlay.active {
+  display: flex;
+  animation: fadeIn 0.2s ease;
+}
+
+.camera-modal {
+  background: #1a1414;
+  color: #fff;
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+.camera-header {
   display: flex;
   align-items: center;
-  gap: 1.1rem;
-  background: var(--color-surface);
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  justify-content: space-between;
+  padding: 0.9rem 1.2rem;
+  background: #251c1c;
 }
 
-.upload-card:hover {
-  border-color: var(--color-primary);
+.camera-header h3 {
+  color: #fff;
+  font-size: 1.05rem;
+  font-family: var(--font-body);
+  font-weight: 600;
 }
 
-.upload-card .upload-preview {
-  width: 68px;
-  height: 68px;
-  border-radius: var(--radius-sm);
-  background: var(--color-primary-light);
-  object-fit: cover;
-  flex-shrink: 0;
+.camera-close-btn {
+  background: none;
+  border: none;
+  color: #c9baba;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primary);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-}
-
-.upload-card .upload-content {
-  flex: 1;
-}
-
-.upload-card .upload-content strong {
-  display: block;
-  font-size: 0.93rem;
-  color: var(--color-text);
-  margin-bottom: 0.15rem;
-}
-
-.upload-card .upload-subtext {
-  display: block;
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
-  margin-bottom: 0.65rem;
-}
-
-.upload-btn-group {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.btn-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.45rem 0.85rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
   transition: all 0.15s ease;
 }
 
-.btn-action:hover {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.btn-action.btn-camera {
-  background: var(--color-primary-light);
-  color: var(--color-primary-dark);
-  border-color: #e5c2c1;
-}
-
-.btn-action.btn-camera:hover {
-  background: var(--color-primary);
+.camera-close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
   color: #fff;
-  border-color: var(--color-primary);
+}
+
+.camera-viewfinder-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#cameraVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Mirror selfie camera so user feels natural */
+#cameraVideo.mirror {
+  transform: scaleX(-1);
+}
+
+.camera-guide {
+  position: absolute;
+  pointer-events: none;
+  border: 2px dashed rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.25);
+}
+
+/* Oval framing guide for profile photo */
+.camera-guide.guide-profile {
+  width: 58%;
+  height: 76%;
+  border-radius: 50%;
+}
+
+/* Rectangular guide for ID card / document */
+.camera-guide.guide-document {
+  width: 82%;
+  height: 65%;
+  border-radius: var(--radius-sm);
+}
+
+.camera-controls {
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #251c1c;
+}
+
+.btn-camera-ctrl {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-camera-ctrl:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-camera-shutter {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: transparent;
+  border: 4px solid #fff;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease;
+}
+
+.btn-camera-shutter:active {
+  transform: scale(0.92);
+}
+
+.shutter-inner {
+  width: 100%;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 50%;
+  display: block;
 }
