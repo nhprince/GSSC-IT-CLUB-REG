@@ -291,7 +291,15 @@ body.admin-body {
   background: var(--color-surface);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+table.members-table {
+  width: 100%;
+  min-width: 1100px;
+  border-collapse: collapse;
 }
 
 table.members-table {
