@@ -91,7 +91,16 @@
         <option value="department:asc">Department</option>
       </select>
       <div class="spacer"></div>
+      <button class="btn btn-ghost btn-sm" id="selectPendingBtn">Select all pending</button>
       <button class="btn btn-ghost btn-sm" id="exportBtn">Export CSV</button>
+    </div>
+
+    <div class="bulk-bar" id="bulkBar">
+      <span id="bulkCount">0 selected</span>
+      <div class="bulk-bar-actions">
+        <button class="btn btn-primary btn-sm" id="bulkConfirmBtn">Confirm selected</button>
+        <button class="btn btn-ghost btn-sm" id="bulkClearBtn">Clear</button>
+      </div>
     </div>
 
     <div class="result-count" id="resultCount"></div>
@@ -100,17 +109,19 @@
       <table class="members-table">
         <thead>
           <tr>
+            <th class="col-check"><input type="checkbox" id="selectAllCheckbox" title="Select all on this page" /></th>
             <th>Name</th>
             <th>Student ID</th>
             <th>Department</th>
             <th>Year / Session</th>
             <th>Contact</th>
             <th>Registered</th>
+            <th>Status</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="membersTableBody">
-          <tr class="loading-row"><td colspan="7">Loading members…</td></tr>
+          <tr class="loading-row"><td colspan="9">Loading members…</td></tr>
         </tbody>
       </table>
     </div>

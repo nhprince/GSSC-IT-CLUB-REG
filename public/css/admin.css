@@ -246,7 +246,46 @@ body.admin-body {
   margin-bottom: 0.8rem;
 }
 
+/* Bulk selection bar */
+
+.bulk-bar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-primary-dark, var(--color-primary));
+}
+
+.bulk-bar.active {
+  display: flex;
+}
+
+.bulk-bar-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
 /* Table */
+
+.col-check {
+  width: 2.5rem;
+  text-align: center;
+}
+
+.row-check,
+#selectAllCheckbox {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
 
 .table-panel {
   background: var(--color-surface);
@@ -324,6 +363,35 @@ table.members-table {
   color: var(--color-text-muted);
 }
 
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.status-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-pending {
+  background: var(--color-accent-light, #f7ecd9);
+  color: var(--color-accent-dark, #8f6620);
+}
+
+.status-confirmed {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
 .row-actions {
   display: flex;
   gap: 0.4rem;
@@ -378,12 +446,21 @@ table.members-table {
     width: 100%;
   }
   .members-table tr {
+    position: relative;
     padding: 0.9rem 1rem;
+    padding-right: 3rem;
     border-bottom: 1px solid var(--color-border);
   }
   .members-table td {
     border: none;
     padding: 0.3rem 0;
+  }
+  .members-table td.col-check {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+    width: auto;
+    padding: 0;
   }
   .members-table td[data-label]:not(.member-name-td)::before {
     content: attr(data-label);

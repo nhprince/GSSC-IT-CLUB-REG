@@ -1,5 +1,9 @@
 -- Govt. Shaheed Suhrawardy College IT Club — Member Registration
 -- D1 (SQLite) schema
+--
+-- NOTE: this file is for a FRESH database only — it drops the table first.
+-- If you already have a live database with real registrations, do not
+-- re-run this file. Use the incremental files in /migrations instead.
 
 DROP TABLE IF EXISTS members;
 
@@ -32,6 +36,10 @@ CREATE TABLE members (
   interests             TEXT,              -- JSON-stringified array
   social_link           TEXT,
   id_document_photo     TEXT,              -- base64 data URI: college ID card or birth certificate
+
+  -- Confirmation email
+  confirmation_status   TEXT NOT NULL DEFAULT 'pending',  -- 'pending' | 'confirmed'
+  confirmed_at          TEXT,
 
   created_at            TEXT NOT NULL DEFAULT (datetime('now'))
 );

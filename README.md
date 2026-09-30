@@ -237,3 +237,108 @@ The admin session lasts 24 hours, then you'll need to log in again.
   project** — Git-connected Pages projects manage bindings from the
   dashboard (Settings → Functions), not from `wrangler.toml`; set it there
   instead.
+
+---
+
+## New: photo editing, CSV photo links, and confirmation emails
+
+Four additions to the admin panel:
+
+1. **Change a member's photo** — in the edit modal, both the profile photo
+   and the ID card / birth certificate photo now have a "Change Photo"
+   button. Pick a new image and it's compressed client-side (same as the
+   registration form) before saving — the old photo is only replaced if you
+   actually pick a new one.
+2. **Photo links in the CSV export** — `profile_photo_url` and
+   `id_document_photo_url` columns are appended to the exported CSV. These
+   link to `/api/admin/members/:id/photo?field=...`, which serves the
+   actual image. **These links only work while logged into the admin
+   panel** (they check the same session cookie as everything else) — opening
+   one in a private/incognito tab or after logging out will show an
+   "Unauthorized" error, which is expected.
+3. **Confirmation email** — click the envelope icon next to a member (or
+   "Send confirmation email" in the view modal) to email them your exact
+   confirmation template. A toast reports whether it sent successfully.
+   Sent members get a "Confirmed" badge; you can resend at any time.
+4. **Bulk confirm** — tick the checkbox on any rows (or click "Select all
+   pending" to grab every unconfirmed member in the current view), then
+   "Confirm selected" to email all of them in one action. This is meant for
+   confirming a backlog of applicants without clicking one at a time.
+
+Emails are sent via **Resend** (`https://resend.com`), not a Cloudflare
+binding — Cloudflare's own email-sending feature currently requires a
+Workers Paid plan to send to arbitrary (unverified) recipient addresses,
+which doesn't fit "send to whichever students applied." Resend's free tier
+covers this comfortably: **3,000 emails/month, capped at 100/day.**
+
+### 1. Apply the database migration
+
+Your live database already has real registrations, so **do not re-run
+`schema.sql`** — it starts with `DROP TABLE IF EXISTS members` and would
+delete everyone who's already registered. Instead, run the new migration,
+which only adds two columns:
+
+```bash
+npx wrangler d1 execute gssc_it_club_db --remote --file=./migrations/0001_add_confirmation_status.sql
+npx wrangler d1 execute gssc_it_club_db --local  --file=./migrations/0001_add_confirmation_status.sql
+```
+
+### 2. Set up Resend (one-time, ~10 minutes)
+
+**Step 1 — Create a Resend account.**
+Go to [resend.com](https://resend.com) and sign up (free).
+
+**Step 2 — Add and verify your sending domain.**
+In the Resend dashboard → **Domains** → **Add Domain** → enter
+`stuckstudio.com` (or a subdomain you're comfortable adding DNS records to,
+e.g. `mail.stuckstudio.com`, if you'd rather not touch the root domain's
+records). Resend gives you a few DNS records (SPF, DKIM, and a tracking
+CNAME) to add wherever `stuckstudio.com`'s DNS is managed (Cloudflare, if
+that's where it lives). This is the one-time setup — once verified, you can
+send from any address `@that domain`, including `gsscitclub@stuckstudio.com`
+as already configured in the code.
+
+Verification usually completes within a few minutes to an hour after the
+DNS records propagate.
+
+**Step 3 — Create an API key.**
+Resend dashboard → **API Keys** → **Create API Key**. Give it a name like
+"GSSC IT Club" and "Sending access" permission. Copy the key — Resend only
+shows it once.
+
+**Step 4 — Add the key as a secret.**
+
+```bash
+npx wrangler pages secret put RESEND_API_KEY
+```
+
+Paste the key when prompted. If your project is Git-connected (Option B in
+the main setup above), also add `RESEND_API_KEY` under **Settings →
+Environment variables** in the Pages dashboard (encrypted), the same way
+you did for `ADMIN_PASSWORD` and `SESSION_SECRET`. Redeploy after adding it.
+
+**Step 5 — Test it.**
+Log into the admin panel, open a test member (or register a test
+application to yourself first), and click the confirm button. The toast
+will tell you immediately if something's misconfigured — common messages:
+
+| Toast message | What it means |
+|---|---|
+| "Email sending isn't configured yet." | `RESEND_API_KEY` isn't set — check Step 4. |
+| "Resend rejected the API key." | The key is wrong, revoked, or wasn't saved — recheck Step 3–4. |
+| "Resend rejected the request: ..." | Usually an unverified sending domain — finish Step 2, or the recipient address is invalid. |
+| "Resend's daily or rate limit was hit." | You've hit the 100/day free cap. Wait until it resets (resets daily) or upgrade Resend's plan. |
+
+### 3. Using bulk confirm
+
+Since the free plan caps at **100 emails/day**, if you're confirming more
+than ~100 applicants in one sitting, the bulk action will send as many as
+it can and then report how many were skipped for hitting the daily limit
+— those are safe to select again and send the next day; nothing gets
+double-charged or duplicated for members already marked "Confirmed."
+
+Local development (`wrangler pages dev`) still calls the real Resend API
+if `RESEND_API_KEY` is set in a local `.dev.vars` file — so be careful
+about testing with real applicant email addresses locally, since it will
+actually send. Leave `RESEND_API_KEY` unset locally if you want the "not
+configured" error instead of live sends while developing.

@@ -24,7 +24,9 @@ export async function onRequestGet(context) {
 
   let query = `
     SELECT id, full_name, student_id, department, year, session, email, phone,
-           blood_group, interests, created_at
+           blood_group, interests, created_at, confirmation_status, confirmed_at,
+           (profile_photo IS NOT NULL) AS has_profile_photo,
+           (id_document_photo IS NOT NULL) AS has_id_document_photo
     FROM members
     WHERE 1 = 1
   `;

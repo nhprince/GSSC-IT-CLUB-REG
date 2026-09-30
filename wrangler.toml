@@ -11,3 +11,8 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 database_name = "gssc_it_club_db"
 database_id = "71deda86-3622-41d9-88b1-b01f68d474f0"
+
+# Confirmation emails are sent via the Resend API (see README.md — "Setting
+# up confirmation emails"), not a Cloudflare binding, so no wrangler.toml
+# entry is needed for it — just the RESEND_API_KEY secret:
+#   npx wrangler pages secret put RESEND_API_KEY

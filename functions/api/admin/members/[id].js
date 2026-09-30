@@ -1,5 +1,10 @@
 import { requireAuth, jsonResponse, unauthorized } from "../../../_utils/auth.js";
 
+// Rough cap so an edited photo can't balloon D1 storage — mirrors the same
+// guard applied to new registrations in functions/api/register.js.
+const MAX_IMAGE_BASE64_LENGTH = 1_500_000; // ~1.1MB decoded
+const IMAGE_FIELDS = new Set(["profile_photo", "id_document_photo"]);
+
 const EDITABLE_FIELDS = [
   "full_name",
   "date_of_birth",
@@ -47,6 +52,14 @@ export async function onRequestPut(context) {
     body = await request.json();
   } catch {
     return jsonResponse({ error: "Invalid request body." }, { status: 400 });
+  }
+
+  for (const field of IMAGE_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(body, field) && body[field]) {
+      if (String(body[field]).length > MAX_IMAGE_BASE64_LENGTH) {
+        return jsonResponse({ error: "That image is too large. Please use a smaller photo." }, { status: 400 });
+      }
+    }
   }
 
   const setClauses = [];

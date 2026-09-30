@@ -1,6 +1,7 @@
 import { requireAuth, jsonResponse, unauthorized } from "../../_utils/auth.js";
 
-const COLUMNS = [
+// Real columns pulled from the members table.
+const DB_COLUMNS = [
   "id",
   "full_name",
   "student_id",
@@ -20,7 +21,13 @@ const COLUMNS = [
   "interests",
   "social_link",
   "created_at",
+  "confirmation_status",
+  "confirmed_at",
 ];
+
+// Final CSV column order — appends the synthetic photo-URL columns (built
+// per-row below, not selected from D1 directly) after the real columns.
+const CSV_COLUMNS = [...DB_COLUMNS, "profile_photo_url", "id_document_photo_url"];
 
 function csvEscape(value) {
   if (value === null || value === undefined) return "";
@@ -36,19 +43,32 @@ export async function onRequestGet(context) {
   if (!(await requireAuth(request, env))) return unauthorized();
 
   try {
+    const origin = new URL(request.url).origin;
+
     const { results } = await env.DB.prepare(
-      `SELECT ${COLUMNS.join(", ")} FROM members ORDER BY created_at DESC`
+      `SELECT ${DB_COLUMNS.join(", ")},
+              (profile_photo IS NOT NULL) AS has_profile_photo,
+              (id_document_photo IS NOT NULL) AS has_id_document_photo
+       FROM members ORDER BY created_at DESC`
     ).all();
 
-    const lines = [COLUMNS.join(",")];
+    const lines = [CSV_COLUMNS.join(",")];
     for (const row of results) {
-      const values = COLUMNS.map((col) => {
+      const values = CSV_COLUMNS.map((col) => {
         if (col === "interests") {
           try {
             return csvEscape(JSON.parse(row.interests || "[]").join("; "));
           } catch {
             return "";
           }
+        }
+        if (col === "profile_photo_url") {
+          return row.has_profile_photo ? csvEscape(`${origin}/api/admin/members/${row.id}/photo?field=profile_photo`) : "";
+        }
+        if (col === "id_document_photo_url") {
+          return row.has_id_document_photo
+            ? csvEscape(`${origin}/api/admin/members/${row.id}/photo?field=id_document_photo`)
+            : "";
         }
         return csvEscape(row[col]);
       });
