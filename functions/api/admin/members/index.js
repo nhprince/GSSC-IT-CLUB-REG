@@ -1,5 +1,8 @@
 import { requireAuth, jsonResponse, unauthorized } from "../../../_utils/auth.js";
 
+// Status filter values accepted by the `status` query param ("" = no filter).
+const STATUS_FILTERS = new Set(["confirmed", "pending"]);
+
 const SORTABLE_COLUMNS = new Set([
   "created_at",
   "full_name",
@@ -7,7 +10,6 @@ const SORTABLE_COLUMNS = new Set([
   "department",
   "year",
   "session",
-  "confirmation_status",
 ]);
 
 export async function onRequestGet(context) {
@@ -17,6 +19,7 @@ export async function onRequestGet(context) {
   const url = new URL(request.url);
   const search = (url.searchParams.get("search") || "").trim();
   const department = (url.searchParams.get("department") || "").trim();
+  const status = (url.searchParams.get("status") || "").trim();
   const sortParam = url.searchParams.get("sort") || "created_at";
   const orderParam = (url.searchParams.get("order") || "desc").toLowerCase();
 
@@ -42,6 +45,11 @@ export async function onRequestGet(context) {
   if (department) {
     query += ` AND department = ?`;
     params.push(department);
+  }
+
+  if (STATUS_FILTERS.has(status)) {
+    query += ` AND confirmation_status = ?`;
+    params.push(status);
   }
 
   query += ` ORDER BY ${sortCol} ${order}`;

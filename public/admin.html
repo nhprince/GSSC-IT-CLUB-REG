@@ -83,14 +83,17 @@
       <select id="departmentFilter">
         <option value="">All departments</option>
       </select>
+      <select id="statusFilter">
+        <option value="">All statuses</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="pending">Pending</option>
+      </select>
       <select id="sortSelect">
         <option value="created_at:desc">Newest first</option>
         <option value="created_at:asc">Oldest first</option>
         <option value="full_name:asc">Name (A–Z)</option>
         <option value="full_name:desc">Name (Z–A)</option>
         <option value="department:asc">Department</option>
-        <option value="confirmation_status:asc">Status (Confirmed first)</option>
-        <option value="confirmation_status:desc">Status (Pending first)</option>
       </select>
       <div class="spacer"></div>
       <button class="btn btn-ghost btn-sm" id="selectPendingBtn">Select all pending</button>

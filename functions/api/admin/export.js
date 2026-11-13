@@ -1,8 +1,10 @@
 import { requireAuth, jsonResponse, unauthorized } from "../../_utils/auth.js";
 
-// Same whitelist as the members list endpoint, so the export can honour the
-// admin panel's current sort selection. Anything unrecognised falls back to
-// the historical default ordering below.
+// Same whitelists as the members list endpoint, so the export can honour the
+// admin panel's current filter + sort selection. Unrecognised values fall
+// back to the historical defaults (no filter, created_at DESC) below.
+const STATUS_FILTERS = new Set(["confirmed", "pending"]);
+
 const SORTABLE_COLUMNS = new Set([
   "created_at",
   "full_name",
@@ -10,7 +12,6 @@ const SORTABLE_COLUMNS = new Set([
   "department",
   "year",
   "session",
-  "confirmation_status",
 ]);
 
 // Real columns pulled from the members table.
@@ -58,20 +59,28 @@ export async function onRequestGet(context) {
   try {
     const origin = new URL(request.url).origin;
 
-    // Optional sort params, mirroring GET /api/admin/members — sorted exports
-    // match the table. Absent/invalid params keep the historical default.
+    // Optional filter + sort params, mirroring GET /api/admin/members — exports
+    // match the table. Absent/invalid values keep the historical defaults.
     const url = new URL(request.url);
+    const status = (url.searchParams.get("status") || "").trim();
     const sortParam = url.searchParams.get("sort") || "created_at";
     const orderParam = (url.searchParams.get("order") || "desc").toLowerCase();
     const sortCol = SORTABLE_COLUMNS.has(sortParam) ? sortParam : "created_at";
     const order = orderParam === "asc" ? "ASC" : "DESC";
 
+    let where = "";
+    const whereParams = [];
+    if (STATUS_FILTERS.has(status)) {
+      where = " WHERE confirmation_status = ?";
+      whereParams.push(status);
+    }
+
     const { results } = await env.DB.prepare(
       `SELECT ${DB_COLUMNS.join(", ")},
               (profile_photo IS NOT NULL) AS has_profile_photo,
               (id_document_photo IS NOT NULL) AS has_id_document_photo
-       FROM members ORDER BY ${sortCol} ${order}`
-    ).all();
+       FROM members${where} ORDER BY ${sortCol} ${order}`
+    ).bind(...whereParams).all();
 
     const lines = [CSV_COLUMNS.join(",")];
     for (const row of results) {

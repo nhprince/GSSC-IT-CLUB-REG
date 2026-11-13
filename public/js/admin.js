@@ -11,6 +11,7 @@
 
   const searchInput = $("searchInput");
   const departmentFilter = $("departmentFilter");
+  const statusFilter = $("statusFilter");
   const sortSelect = $("sortSelect");
   const exportBtn = $("exportBtn");
   const membersTableBody = $("membersTableBody");
@@ -162,11 +163,16 @@
         searchDebounce = setTimeout(loadMembers, 350);
       });
       departmentFilter.addEventListener("change", loadMembers);
+      statusFilter.addEventListener("change", loadMembers);
       sortSelect.addEventListener("change", loadMembers);
       exportBtn.addEventListener("click", () => {
-        // Export honours the current sort selection, so the CSV matches the table.
+        // Export honours the current filters + sort, so the CSV matches the table.
         const [sortCol, sortOrder] = sortSelect.value.split(":");
-        const params = new URLSearchParams({ sort: sortCol, order: sortOrder });
+        const params = new URLSearchParams({
+          status: statusFilter.value,
+          sort: sortCol,
+          order: sortOrder,
+        });
         window.location.href = `/api/admin/export?${params.toString()}`;
       });
 
@@ -352,6 +358,7 @@
     const params = new URLSearchParams({
       search: searchInput.value.trim(),
       department: departmentFilter.value,
+      status: statusFilter.value,
       sort: sortCol,
       order: sortOrder,
     });
