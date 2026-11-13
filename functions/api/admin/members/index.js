@@ -7,6 +7,7 @@ const SORTABLE_COLUMNS = new Set([
   "department",
   "year",
   "session",
+  "confirmation_status",
 ]);
 
 export async function onRequestGet(context) {

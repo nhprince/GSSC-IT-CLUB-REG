@@ -164,7 +164,10 @@
       departmentFilter.addEventListener("change", loadMembers);
       sortSelect.addEventListener("change", loadMembers);
       exportBtn.addEventListener("click", () => {
-        window.location.href = "/api/admin/export";
+        // Export honours the current sort selection, so the CSV matches the table.
+        const [sortCol, sortOrder] = sortSelect.value.split(":");
+        const params = new URLSearchParams({ sort: sortCol, order: sortOrder });
+        window.location.href = `/api/admin/export?${params.toString()}`;
       });
 
       selectAllCheckbox.addEventListener("change", () => {

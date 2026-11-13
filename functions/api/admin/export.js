@@ -1,5 +1,18 @@
 import { requireAuth, jsonResponse, unauthorized } from "../../_utils/auth.js";
 
+// Same whitelist as the members list endpoint, so the export can honour the
+// admin panel's current sort selection. Anything unrecognised falls back to
+// the historical default ordering below.
+const SORTABLE_COLUMNS = new Set([
+  "created_at",
+  "full_name",
+  "student_id",
+  "department",
+  "year",
+  "session",
+  "confirmation_status",
+]);
+
 // Real columns pulled from the members table.
 const DB_COLUMNS = [
   "id",
@@ -45,11 +58,19 @@ export async function onRequestGet(context) {
   try {
     const origin = new URL(request.url).origin;
 
+    // Optional sort params, mirroring GET /api/admin/members — sorted exports
+    // match the table. Absent/invalid params keep the historical default.
+    const url = new URL(request.url);
+    const sortParam = url.searchParams.get("sort") || "created_at";
+    const orderParam = (url.searchParams.get("order") || "desc").toLowerCase();
+    const sortCol = SORTABLE_COLUMNS.has(sortParam) ? sortParam : "created_at";
+    const order = orderParam === "asc" ? "ASC" : "DESC";
+
     const { results } = await env.DB.prepare(
       `SELECT ${DB_COLUMNS.join(", ")},
               (profile_photo IS NOT NULL) AS has_profile_photo,
               (id_document_photo IS NOT NULL) AS has_id_document_photo
-       FROM members ORDER BY created_at DESC`
+       FROM members ORDER BY ${sortCol} ${order}`
     ).all();
 
     const lines = [CSV_COLUMNS.join(",")];
